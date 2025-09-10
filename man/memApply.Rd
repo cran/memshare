@@ -26,6 +26,9 @@
   Since the memory is shared only the names of variables have to be copied to each worker thread in \code{CLUSTER} (a \code{\link[parallel]{makeCluster}} multithreading cluster) resulting in sharing of arbitrarily large matrices (as long as the fit in RAM once) along a \pkg{parallel} cluster while only copying a couple of bytes per cluster.
 
  The numerical matrix X and the Vars havee to be objects of base type '\code{double}'.
+
+
+  It is recommended not to change the values of \code{v} inside \code{FUN}, however this will only lead to some copying of the column whenever it is worked upon; the shared memory thus will not be corrupted even if you write to column or row. Also the copying only ever happens for one column/row at a time leading to much lower memory consumption than parallel even in this case.
 }
 
 \author{ Julian Maerte }
@@ -33,13 +36,13 @@
 \seealso{ \code{\link[parallel]{parApply}} }
 \examples{
   library(parallel)
-  cl=makeCluster(1)
-  i=1
-  A1 <- matrix(as.double(1:10^(i+1)),10^i, 10^i)
+  cl = makeCluster(1)
+  i = 1
+  A1 = matrix(as.double(1:10^(i+1)),10^i, 10^i)
   
   res = memApply(X = A1, MARGIN = 2, FUN = function(x) {
     return(sd(x))
-  }, CLUSTER=cl, NAMESPACE="namespace")
+  }, CLUSTER=cl, NAMESPACE="ns_apply")
   
   SD_vector=unlist(res)
 }

@@ -23,6 +23,64 @@ The two basic definitions are:
 2. “\code{Views}” are references to variables owned by another (or their own) compilation unit. The views are always 'ALTREP' wrappers for the pointers to the shared memory chunk.  
 		
 3. "\code{namespace}" are character of length 1 called here strings, that define the identifier of the shared memory context allowing the initialize shared variables.
+
+\strong{Safety}
+
+R itself is designed around a single-threaded C API, which means that internal 
+R functions and memory management cannot be called safely from multiple threads 
+at the same time. Each worker process created by \pkg{parallel} runs its own 
+independent R interpreter, so ordinary R code is safe as long as all 
+R-level operations happen inside one worker at a time.
+
+However, shared-memory buffers created by \pkg{memshare} are visible to multiple 
+R sessions simultaneously. These buffers are intended to be \emph{read-shared}: 
+many workers can read the same matrix or vector concurrently without conflict.  
+If you ever modify a shared object in place (e.g., \code{X[1,1] <- 0}), that write 
+immediately affects the shared buffer seen by other workers and can cause 
+data races if they also access the same region. To avoid this, treat shared 
+variables as read-only, or implement explicit synchronization mechanisms such as 
+interprocess locks or task partitioning that guarantees non-overlapping writes.
+
+Inside compiled code (e.g., via Rcpp, OpenMP, or TBB), threads may perform 
+numerical computations on raw pointers to shared data, but must never call 
+back into R (e.g., create R objects, print, evaluate R expressions, etc.) from 
+those secondary threads. All communication with R must occur in the main thread 
+of each worker process.
+
+\strong{Resource lifecycle}
+
+Shared memory behaves differently from ordinary R objects because it exists 
+outside the R garbage collector. Therefore, \pkg{memshare} provides explicit 
+functions to manage it.
+
+Each time you call \code{\link{retrieveViews}}, the package creates one or more 
+"handles" that link your R objects to the shared-memory segments. When you are 
+done using these views, always call \code{\link{releaseViews}} to remove those 
+handles. As long as any active view exists in any R session, the corresponding 
+shared memory remains allocated.
+
+Memory can only be reclaimed once all views have been released.  
+The call to \code{\link{releaseVariables}} from the master session removes ownership 
+of the pages, but they are physically unmapped only when no process holds a view.  
+Detaching or unloading the \pkg{memshare} package automatically drops all handles, 
+but if another R session still has an open view, that memory remains in use until 
+it is released there as well. This design prevents dangling pointers and ensures 
+that shared data are not invalidated while still in use by another worker.
+
+\strong{OS notes}\cr
+\emph{Windows.} Uses Win32 file mappings (\code{CreateFileMappingA()}, \code{MapViewOfFile()}). Namespaces are automatically prefixed with \code{"Local\\\\"} to scope mappings per user session. Mapping sizes use 64-bit high/low DWORDs. Views are opened read-only by default (\code{FILE_MAP_READ}). Cleanup unmaps views (\code{UnmapViewOfFile()}) and then closes handles (\code{CloseHandle()}). Requires homogeneous architecture (e.g., all 64-bit R sessions). Antivirus/EDR tools may slow mappings.
+
+\emph{Linux.} Uses POSIX shared memory (\code{shm_open()} + \code{mmap()}). Owners create with \code{O_CREAT|O_EXCL|O_RDWR} and \code{PROT_READ|PROT_WRITE}; views attach with \code{O_RDONLY} and \code{PROT_READ}. Owners call \code{shm_unlink()} only after all views are released. Shared memory size may be limited by \code{/dev/shm} or system SHM limits (e.g., \code{shmmax}).
+
+\emph{macOS.} Also uses POSIX shared memory (\code{shm_open()} + \code{mmap()}) with the same owner/view flags as Linux.
+Unlike Linux, macOS implements POSIX shared memory via files in \file{/var/run/shm} or \file{/private/var/shm}, which may
+not exist by default and can require manual creation or permission adjustment. POSIX shm names must be short; a practical
+upper bound is about 32 characters including the leading slash. Exceeding this limit raises a clear error. Shared memory
+segments are visible only to processes of the same user unless permissions are relaxed. The maximum segment size could be smaller than on Linux. macOS does not automatically remove orphaned
+segments if a process crashes; these must be manually cleaned using \code{ipcs -m} / \code{ipcrm} or by restarting the
+system. If your R session or script crashes before releaseVariables() or releaseViews() runs, those shared memory segments may remain allocated on disk.
+
+
 }
 \author{
 \packageAuthor{memshare}

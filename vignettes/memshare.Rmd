@@ -13,7 +13,7 @@ output:
             fig.width: 8
             fig.height: 8
 vignette: >
-  %\VignetteIndexEntry{A Quick Tour in Data Visualizations}
+  %\VignetteIndexEntry{memshare: Fast Shared-Memory Parallelism in R}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

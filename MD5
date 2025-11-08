@@ -1,4 +1,4 @@
-b62b7d87d1957f6bcddd875eb46b1ca5 *DESCRIPTION
+ee0c354bf7cc8050e8793100f4f880b5 *DESCRIPTION
 92ec374517ad6d446b921e77c0b53b21 *NAMESPACE
 28f2754f846599ab6792f287f69417ce *R/c_mutualinfo.R
 a2f49dee75aa4d31112b27a074948aeb *R/memApply.R
@@ -13,9 +13,9 @@ c0ad42e3a84d5916fcada7982943a32e *R/retrieveMetadata.R
 508ef6baea1c93954c6f06b82d761d88 *R/retrieveViews.R
 e793ce82ac67e1069e3b7d191a906f75 *R/viewList.R
 f17161b73245dbf75d12c0036bfc3a10 *README.md
-c0a8bcf02bf2e2ca66060d97fd2b373b *build/partial.rdb
-04897fd7db5b0d5bd783e13bc0580927 *build/vignette.rds
-dbc19fd5c2a8071d5f1fee4733a35120 *inst/doc/memshare.Rmd
+8e82fed7b2b4660f83f0825665a2f614 *build/partial.rdb
+316dc94aa6602fe4ca322493a7299756 *build/vignette.rds
+a7d4e240041e51dbc40aac70de77ca1f *inst/doc/memshare.Rmd
 f3f093faafb3adccc93ef31c26751545 *inst/doc/memshare.html
 11461dbeb11bbf9d98bb4c1bed14ca18 *man/memApply.Rd
 c65a06da78548ad4479561f2959617c1 *man/memLapply.Rd
@@ -44,4 +44,4 @@ a5ed7620307ba49a12782d723818633e *src/register.h
 296ea346f7c4e433e6becb74a5b9634e *src/retrieve.h
 c18b371ae1d3651a49e1e0f2e4ecc120 *src/shared_memory.cpp
 6e7e1501a45785ea5062607a88d6139b *src/shared_memory.h
-dbc19fd5c2a8071d5f1fee4733a35120 *vignettes/memshare.Rmd
+a7d4e240041e51dbc40aac70de77ca1f *vignettes/memshare.Rmd
